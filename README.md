@@ -4,7 +4,7 @@
 This codebase is 100% python and focuses on extracting public emissions related data.
 
 ### Prerequisites
-This project depends on you having `pip`, Python 3, and `venv` on your local machine.
+This project depends on you having `pip`, `python3`, and `venv` on your local machine.
 
 ### Setting up your environment
 
