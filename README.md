@@ -24,4 +24,5 @@ Contact contact@leonrichard.com to receive the .env file needed to run environme
 #### Running the Application
 iPython is used to run this codebase and should already be installed with the requirements.txt
 To execute a file the virtual environment must be activated, next to call the file in the terminal type ipython then the python filepath.
+
 ex: ipython some_python_file.py
