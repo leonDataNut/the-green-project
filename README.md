@@ -20,3 +20,8 @@ If successful you should now see (env) at the beginning of the cmdline cursor
 ### Step #3 - Environment variables
 Create a .env file at the root of the source code (the-green-project/.env)
 Contact contact@leonrichard.com to receive the .env file needed to run environment variables or have these variables set in your instance
+
+#### Running the Application
+iPython is used to run this codebase and should already be installed with the requirements.txt
+To execute a file the virtual environment must be activated, next to call the file in the terminal type ipython then the python filepath.
+ex: ipython some_python_file.py
