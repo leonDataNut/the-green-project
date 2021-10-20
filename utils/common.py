@@ -2,6 +2,15 @@ import logging
 import sys
 import time
 import threading
+import os
+from dotenv import load_dotenv
+
+# Loading Local env variables
+load_dotenv()
+
+#########################################
+# Logging
+#########################################
 
 
 def setup_logging(module=None, level=logging.INFO):  # pragma: no cover
@@ -21,7 +30,7 @@ def setup_logging(module=None, level=logging.INFO):  # pragma: no cover
     return logger
 
 
-class ProgressPercentage(object):
+class progress_percentage(object):
     def __init__(self, progress_name, total_size):
         self.progress_name = progress_name
         self._size = total_size
@@ -48,3 +57,12 @@ class ProgressPercentage(object):
                 sys.stderr.write('\n')
 
             sys.stderr.flush()
+
+
+#########################################
+# DB Constants
+#########################################         
+
+IMPORT_SCHEMA = os.environ["DB_IMPORT_SCHEMA"]
+STAGING_SCHEMA = os.environ["DB_REPORTING_SCHEMA"]
+REPORTING_SCHEMA = os.environ["DB_STAGING_SCHEMA"]

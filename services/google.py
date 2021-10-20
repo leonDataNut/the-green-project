@@ -2,10 +2,16 @@
 import json
 from dotenv import load_dotenv
 import os
+import sys
 from utils.filesystem import writers
 from utils.common import setup_logging
-from google.cloud import bigquery
 
+# Google Packages
+from google.cloud import bigquery
+from google.cloud import bigquery_storage_v1
+from google.cloud.bigquery_storage_v1 import types
+from google.cloud.bigquery_storage_v1 import writer
+from google.protobuf import descriptor_pb2
 
 # Getting environment variables
 load_dotenv()
@@ -15,14 +21,16 @@ GOOGLE_AUTH_TYPE = os.environ["GOOGLE_AUTH_TYPE"]
 GOOGLE_AUTH_URI = os.environ["GOOGLE_AUTH_URI"]
 GOOGLE_TOKEN_URI = os.environ["GOOGLE_TOKEN_URI"]
 GOOGLE_AUTH_PROVIDER_CERT_URL = os.environ["GOOGLE_AUTH_PROVIDER_CERT_URL"]
-GOOGLE_PROJECT_ID = os.environ["DEV_GOOGLE_PROJECT_ID"]
-GOOGLE_PRIVATE_KEY_ID = os.environ["DEV_GOOGLE_PRIVATE_KEY_ID"]
-GOOGLE_PRIVATE_KEY = os.environ["DEV_GOOGLE_PRIVATE_KEY"]
-GOOGLE_CLIENT_EMAIL = os.environ["DEV_GOOGLE_CLIENT_EMAIL"]
-GOOGLE_CLIENT_ID = os.environ["DEV_GOOGLE_CLIENT_ID"]
-GOOGLE_CERT_URL = os.environ["DEV_GOOGLE_CERT_URL"]
+GOOGLE_PROJECT_ID = os.environ["GOOGLE_PROJECT_ID"]
+GOOGLE_PRIVATE_KEY_ID = os.environ["GOOGLE_PRIVATE_KEY_ID"]
+GOOGLE_PRIVATE_KEY = os.environ["GOOGLE_PRIVATE_KEY"]
+GOOGLE_CLIENT_EMAIL = os.environ["GOOGLE_CLIENT_EMAIL"]
+GOOGLE_CLIENT_ID = os.environ["GOOGLE_CLIENT_ID"]
+GOOGLE_CERT_URL = os.environ["GOOGLE_CERT_URL"]
+
 
 LOG = setup_logging(__name__)
+
 
 class bigquery_service:
     def __init__(self, project_id=GOOGLE_PROJECT_ID, private_key_id=GOOGLE_PRIVATE_KEY_ID, private_key=GOOGLE_PRIVATE_KEY,
@@ -40,11 +48,13 @@ class bigquery_service:
 
     def __enter__(self, *args):
         LOG.info("Creating Bigquery service") 
+        self.authenticate()
         return self
 
     
     def __exit__(self, *args):
         LOG.info("Closing Bigquery service")   
+        self.client.close()
 
 
     def authenticate(self):
@@ -67,8 +77,10 @@ class bigquery_service:
         LOG.info(f"Successfully authenticated to project {self.project_id}")
 
 
-    def execute_query(self, query):
-        pass
+    def execute_sql(self, query, verbose=True):
+        if verbose:
+            LOG.info(f"Executing query\n{query}")
+        return self.client.query(query).result()
 
 
     def return_query_dict(self, query):
@@ -77,5 +89,35 @@ class bigquery_service:
 
     def return_query_df(self, query):
         pass
+        #TODO not here yet
 
 
+    def insert_df_records(self, df, schema, table):
+        table_id = f"{self.project_id}.{schema}.{table}"
+        self.client.load_table_from_dataframe(df, table_id)
+        LOG.info(f"Upserted {df.size} records to {table_id}")
+
+
+    def create_schema(self, name, replace=False):
+        self.client.create_dataset(name, replace)
+        LOG.info(f"Successfully Created Dataset {name}")
+
+
+    def list_datasets(self):
+        return self.client.list_datasets(self.project_id)
+
+
+    def list_tables(self, dataset_id=None):
+        dataset_ids = []
+        if dataset_id:
+            dataset_ids.append(dataset_id)
+        else:
+            for dataset_id in self.list_datasets():
+                dataset_ids.append(dataset_id)
+
+        tables = []
+        for dataset_id in dataset_ids:
+            dataset_tables = self.client.list_tables(dataset_id)
+            tables.extend(dataset_tables)
+
+        return tables
